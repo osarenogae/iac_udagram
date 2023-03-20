@@ -1,9 +1,11 @@
 Description: >
-    Carlos Rivas / Udacity
-    This template deploys a VPC, with a pair of public and private subnets spread 
-    across two Availabilty Zones. It deploys an Internet Gateway, with a default 
-    route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ), 
-    and default routes for them in the private subnets.
+    Ochuko Ogieva / Udacity Cloud DevOps Nanodegree
+    This template provisions the infrastructure required for a high-avialability
+    web app. It deploys a VPC across two Availability Zones (AZ) with a pair of
+    public and private subnets within each AZ. NAT Gateways (one in each AZ) are
+    deployed to grant access to the app hosted on web servers within the private
+    subnets. An Internet Gateway is attached to the VPC with default routes to
+    the public subnets and a Load Balancer to direct traffic.
 
 Parameters:
 
@@ -37,7 +39,7 @@ Parameters:
         Default: 10.0.3.0/24
 
 Resources:
-
+    
     VPC: 
         Type: AWS::EC2::VPC
         Properties:
@@ -198,8 +200,42 @@ Resources:
         Properties:
             RouteTableId: !Ref PrivateRouteTable2
             SubnetId: !Ref PrivateSubnet2
+            
+    IAMAccessBucketRole:
+        Type: "AWS::IAM::Role"
+        Properties: 
+            ManagedPolicyArns:
+                - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    -   Effect: "Allow"
+                        Principal:
+                            Service:
+                                -  "ec2.amazonaws.com"
+                        Action: 
+                            - "sts:AssumeRole"
+            Path: "/"
+    
+    ProfileWithRoles:
+        Type: "AWS::IAM::InstanceProfile"
+        Properties:
+            Path: "/"
+            Roles:
+                - Ref: "IAMAccessBucketRole"
 
 Outputs: 
+    IAMAccessBucketRole:
+        Description: "Allow EC2 Instances to manage Web App S3"
+        Value: !Ref ProfileWithRoles
+        Export: 
+            Name: !Sub ${EnvironmentName}-IAM-NAME
+    IAMAccessBucketRoleArn:
+        Description: IAM Instance Profile Arn
+        Value: !GetAtt IAMAccessBucketRole.Arn
+        Export: 
+            Name: !Sub ${EnvironmentName}-IAM-ARN
+    
 
     VPC: 
         Description: A reference to the created VPC

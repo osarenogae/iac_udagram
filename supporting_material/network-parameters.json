@@ -1,7 +1,7 @@
 [
 	{
 		"ParameterKey": "EnvironmentName",
-		"ParameterValue": "UdacityProject"
+		"ParameterValue": "UdagramDemo"
 	},
 	{
 		"ParameterKey": "VpcCIDR",
